@@ -1,0 +1,111 @@
+name: 'UpperCampus ECS Deployment preparation action'
+description: 'Performs preparation for ECS deployments to UpperCampus ECS clusters'
+inputs:
+  short-service:
+    required: true
+    description: "Short name of the service used as search string for AWS outputs"
+  image:
+    required: true
+    description: "Docker image to put into the task definition files"
+  stg-ecs-task-definition-file:
+    description: "Staging ECS Task definition family filename"
+    required: false
+    default: task-definition-stg.json
+  prd-ecs-task-definition-file:
+    description: "Production ECS Task definition family filename"
+    required: false
+    default: task-definition-prd.json
+outputs:
+  stg-ecs-cluster:
+    description: "Staging ECS Cluster Name"
+    value: ${{ steps.generate-task-definitions.outputs.stg-ecs-cluster }}
+  prd-ecs-cluster:
+    description: "Production ECS Cluster Name"
+    value: ${{ steps.generate-task-definitions.outputs.prd-ecs-cluster }}
+  stg-ecs-service:
+    description: "Staging ECS Service Name"
+    value: ${{ steps.generate-task-definitions.outputs.stg-ecs-service }}
+  prd-ecs-service:
+    description: "Production ECS Service Name"
+    value: ${{ steps.generate-task-definitions.outputs.prd-ecs-service }}
+  stg-ecs-task-definition-family:
+    description: "Staging ECS Task definition family"
+    value: ${{ steps.generate-task-definitions.outputs.stg-ecs-task-definition-family }}
+  prd-ecs-task-definition-family:
+    description: "Production ECS Task definition family"
+    value: ${{ steps.generate-task-definitions.outputs.prd-ecs-task-definition-family }}
+  stg-ecs-task-definition-file:
+    description: "Name of the generated task definition file for staging"
+    value: ${{ inputs.stg-ecs-task-definition-file }}
+  prd-ecs-task-definition-file:
+    description: "Name of the generated task definition file for production"
+    value: ${{ inputs.prd-ecs-task-definition-file }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: generate-task-definitions
+      name: Generate task definition files
+      shell: bash
+      run: |
+        set -x
+
+        # Parameter 1: stage
+        determine_cluster () {
+          echo $(aws ecs list-clusters --query clusterArns \
+            | jq -r ".[] | select(. | contains(\"$1\"))" \
+            | cut -d/ -f 2 \
+            | uniq)
+        }
+
+        # Parameter 1: stage
+        # Parameter 2: cluster
+        determine_service () {
+          echo $(aws ecs list-services --cluster $2 --query "serviceArns" \
+            | jq -r ".[] | select(. | contains(\"$1\"))" \
+            | cut -d/ -f 3 \
+            | grep ${{ inputs.short-service }} \
+            | uniq)
+        }
+
+        # Parameter 1: stage
+        determine_task_definition () {
+          echo $(aws ecs list-task-definitions --query "taskDefinitionArns" \
+            | jq -r ".[] | select(. | contains(\"$1\"))" \
+            | cut -d/ -f 2 \
+            | cut -d: -f 1 \
+            | grep ${{ inputs.short-service }} \
+            | uniq)
+        }
+        
+        # Parameter 1: Output file name
+        # Parameter 2: Task definition family
+        create_task_definition () {
+          aws ecs describe-task-definition --task-definition $2 --query taskDefinition \
+            | jq ".containerDefinitions[0].image = \"${{ inputs.image }}\"" \
+            > $1
+        }
+
+        STG_ECS_CLUSTER=$(determine_cluster stg)
+        echo "::set-output name=stg-ecs-cluster::$(echo $STG_ECS_CLUSTER)"
+
+        STG_ECS_SERVICE=$(determine_service stg ${STG_ECS_CLUSTER})
+        echo "::set-output name=stg-ecs-service::$(echo $STG_ECS_SERVICE)"
+
+        STG_TASK_DEFINITION_FAMILY=$(determine_task_definition stg)
+        echo "::set-output name=stg-ecs-task-definition-family::$(echo $STG_TASK_DEFINITION_FAMILY)"
+
+        PRD_ECS_CLUSTER=$(determine_cluster prd)
+        echo "::set-output name=prd-ecs-cluster::$(echo $PRD_ECS_CLUSTER)"
+
+        PRD_ECS_SERVICE=$(determine_service "prd" ${PRD_ECS_CLUSTER})
+        echo "::set-output name=prd-ecs-service::$(echo $PRD_ECS_SERVICE)"
+
+        PRD_TASK_DEFINITION_FAMILY=$(determine_task_definition "prd")
+        echo "::set-output name=prd-ecs-task-definition-family::$(echo $PRD_TASK_DEFINITION_FAMILY)"
+
+        create_task_definition ${{ inputs.stg-ecs-task-definition-file }} $STG_TASK_DEFINITION_FAMILY
+        create_task_definition ${{ inputs.prd-ecs-task-definition-file }} $PRD_TASK_DEFINITION_FAMILY
+
+      
+    
