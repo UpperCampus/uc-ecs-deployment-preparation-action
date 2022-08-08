@@ -145,7 +145,7 @@ runs:
         STG_BETA_ECS_SERVICE=$(determine_service stg-beta ${STG_BETA_ECS_CLUSTER})
         echo "::set-output name=stg-beta-ecs-service::$(echo $STG_BETA_ECS_SERVICE)"
 
-        STG_BETA_TASK_DEFINITION_FAMILY=$(determine_task_definition stg-beta)
+        STG_BETA_TASK_DEFINITION_FAMILY=$(determine_task_definition stgbeta)
         echo "::set-output name=stg-beta-ecs-task-definition-family::$(echo $STG_BETA_TASK_DEFINITION_FAMILY)"        
         
         PRD_BETA_ECS_CLUSTER=$(determine_cluster prd-beta)
@@ -154,7 +154,7 @@ runs:
         PRD_BETA_ECS_SERVICE=$(determine_service "prd-beta" ${PRD_BETA_ECS_CLUSTER})
         echo "::set-output name=prd-beta-ecs-service::$(echo $PRD_BETA_ECS_SERVICE)"
 
-        PRD_BETA_TASK_DEFINITION_FAMILY=$(determine_task_definition "prd-beta")
+        PRD_BETA_TASK_DEFINITION_FAMILY=$(determine_task_definition "prdbeta")
         echo "::set-output name=prd-beta-ecs-task-definition-family::$(echo $PRD_BETA_TASK_DEFINITION_FAMILY)"
         
         create_task_definition ${{ inputs.stg-beta-ecs-task-definition-file }} $STG_BETA_TASK_DEFINITION_FAMILY
