@@ -103,7 +103,7 @@ runs:
         # Parameter 1: stage
         determine_task_definition () {
           echo $(aws ecs list-task-definitions --query "taskDefinitionArns" \
-            | jq -r ".[] | select(. | contains(\"$1-ecs\"))" \
+            | jq -r ".[] | select(. | contains(\"$1ecs\"))" \
             | cut -d/ -f 2 \
             | cut -d: -f 1 \
             | grep ${{ inputs.short-service }} \
