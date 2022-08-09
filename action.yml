@@ -15,14 +15,6 @@ inputs:
     description: "Production ECS Task definition family filename"
     required: false
     default: task-definition-prd.json
-  stg-beta-ecs-task-definition-file:
-    description: "Staging-Beta ECS Task definition family filename"
-    required: false
-    default: task-definition-stg-beta.json
-  prd-beta-ecs-task-definition-file:
-    description: "Production-Beta ECS Task definition family filename"
-    required: false
-    default: task-definition-prd-beta.json
 outputs:
   stg-ecs-cluster:
     description: "Staging ECS Cluster Name"
@@ -48,30 +40,6 @@ outputs:
   prd-ecs-task-definition-file:
     description: "Name of the generated task definition file for production"
     value: ${{ inputs.prd-ecs-task-definition-file }}
-  stg-beta-ecs-cluster:
-    description: "Staging-Beta ECS Cluster Name"
-    value: ${{ steps.generate-task-definitions.outputs.stg-beta-ecs-cluster }}
-  prd-beta-ecs-cluster:
-    description: "Production-Beta ECS Cluster Name"
-    value: ${{ steps.generate-task-definitions.outputs.prd-beta-ecs-cluster }}
-  stg-beta-ecs-service:
-    description: "Staging-Beta ECS Service Name"
-    value: ${{ steps.generate-task-definitions.outputs.stg-beta-ecs-service }}
-  prd-beta-ecs-service:
-    description: "Production-Beta ECS Service Name"
-    value: ${{ steps.generate-task-definitions.outputs.prd-beta-ecs-service }}
-  stg-beta-ecs-task-definition-family:
-    description: "Staging-Beta ECS Task definition family"
-    value: ${{ steps.generate-task-definitions.outputs.stg-beta-ecs-task-definition-family }}
-  prd-beta-ecs-task-definition-family:
-    description: "Production-Beta ECS Task definition family"
-    value: ${{ steps.generate-task-definitions.outputs.prd-beta-ecs-task-definition-family }}
-  stg-beta-ecs-task-definition-file:
-    description: "Name of the generated task definition file for staging-beta"
-    value: ${{ inputs.stg-beta-ecs-task-definition-file }}
-  prd-beta-ecs-task-definition-file:
-    description: "Name of the generated task definition file for production-beta"
-    value: ${{ inputs.prd-beta-ecs-task-definition-file }}
 
 runs:
   using: "composite"
@@ -137,28 +105,5 @@ runs:
         echo "::set-output name=prd-ecs-task-definition-family::$(echo $PRD_TASK_DEFINITION_FAMILY)"
 
         create_task_definition ${{ inputs.stg-ecs-task-definition-file }} $STG_TASK_DEFINITION_FAMILY
-        create_task_definition ${{ inputs.prd-ecs-task-definition-file }} $PRD_TASK_DEFINITION_FAMILY
-        
-        STG_BETA_ECS_CLUSTER=$(determine_cluster stg-beta)
-        echo "::set-output name=stg-beta-ecs-cluster::$(echo $STG_BETA_ECS_CLUSTER)"
-
-        STG_BETA_ECS_SERVICE=$(determine_service stg-beta ${STG_BETA_ECS_CLUSTER})
-        echo "::set-output name=stg-beta-ecs-service::$(echo $STG_BETA_ECS_SERVICE)"
-
-        STG_BETA_TASK_DEFINITION_FAMILY=$(determine_task_definition stgbeta)
-        echo "::set-output name=stg-beta-ecs-task-definition-family::$(echo $STG_BETA_TASK_DEFINITION_FAMILY)"        
-        
-        PRD_BETA_ECS_CLUSTER=$(determine_cluster prd-beta)
-        echo "::set-output name=prd-beta-ecs-cluster::$(echo $PRD_BETA_ECS_CLUSTER)"
-
-        PRD_BETA_ECS_SERVICE=$(determine_service "prd-beta" ${PRD_BETA_ECS_CLUSTER})
-        echo "::set-output name=prd-beta-ecs-service::$(echo $PRD_BETA_ECS_SERVICE)"
-
-        PRD_BETA_TASK_DEFINITION_FAMILY=$(determine_task_definition "prdbeta")
-        echo "::set-output name=prd-beta-ecs-task-definition-family::$(echo $PRD_BETA_TASK_DEFINITION_FAMILY)"
-        
-        create_task_definition ${{ inputs.stg-beta-ecs-task-definition-file }} $STG_BETA_TASK_DEFINITION_FAMILY
-        create_task_definition ${{ inputs.prd-beta-ecs-task-definition-file }} $PRD_BETA_TASK_DEFINITION_FAMILY
-
-      
+        create_task_definition ${{ inputs.prd-ecs-task-definition-file }} $PRD_TASK_DEFINITION_FAMILY      
     
