@@ -87,22 +87,22 @@ runs:
         }
 
         STG_ECS_CLUSTER=$(determine_cluster stg)
-        echo "::set-output name=stg-ecs-cluster::$(echo $STG_ECS_CLUSTER)"
+        echo "stg-ecs-cluster=$(echo $STG_ECS_CLUSTER)" >> $GITHUB_OUTPUT
 
         STG_ECS_SERVICE=$(determine_service stg ${STG_ECS_CLUSTER})
-        echo "::set-output name=stg-ecs-service::$(echo $STG_ECS_SERVICE)"
+        echo "stg-ecs-service=$(echo $STG_ECS_SERVICE)" >> $GITHUB_OUTPUT
 
         STG_TASK_DEFINITION_FAMILY=$(determine_task_definition stg)
-        echo "::set-output name=stg-ecs-task-definition-family::$(echo $STG_TASK_DEFINITION_FAMILY)"
+        echo "stg-ecs-task-definition-family=$(echo $STG_TASK_DEFINITION_FAMILY)" >> $GITHUB_OUTPUT
         
         PRD_ECS_CLUSTER=$(determine_cluster prd)
-        echo "::set-output name=prd-ecs-cluster::$(echo $PRD_ECS_CLUSTER)"
+        echo "prd-ecs-cluster=$(echo $PRD_ECS_CLUSTER)" >> $GITHUB_OUTPUT
 
         PRD_ECS_SERVICE=$(determine_service "prd" ${PRD_ECS_CLUSTER})
-        echo "::set-output name=prd-ecs-service::$(echo $PRD_ECS_SERVICE)"
+        echo "prd-ecs-service=$(echo $PRD_ECS_SERVICE)" >> $GITHUB_OUTPUT
 
         PRD_TASK_DEFINITION_FAMILY=$(determine_task_definition "prd")
-        echo "::set-output name=prd-ecs-task-definition-family::$(echo $PRD_TASK_DEFINITION_FAMILY)"
+        echo "prd-ecs-task-definition-family=$(echo $PRD_TASK_DEFINITION_FAMILY)" >> $GITHUB_OUTPUT
 
         create_task_definition ${{ inputs.stg-ecs-task-definition-file }} $STG_TASK_DEFINITION_FAMILY
         create_task_definition ${{ inputs.prd-ecs-task-definition-file }} $PRD_TASK_DEFINITION_FAMILY      
